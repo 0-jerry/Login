@@ -7,8 +7,8 @@
 
 // TODO: - 이후 세분화 시도?
 enum SignUpError: Error {
-    case email
-    case password
+    case email(message: String)
+    case password(message: String)
     case confirmPassword
     case nickName
     case unknown

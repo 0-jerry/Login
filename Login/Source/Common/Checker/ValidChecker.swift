@@ -13,6 +13,8 @@ protocol ValidCheckerProtocol {
 }
 
 struct ValidChecker: ValidCheckerProtocol {
+    static let emailErrorMessage = "영문 소문자로 시작, 8~20자, 올바른 이메일 형식이 필요합니다."
+    static let passwortErrorMessage = "8자이상, 대/소문자, 숫자, 특수문자 각 1개 이상 필요 합니다."
     func email(_ email: String) -> Result<String, SignUpError> {
         guard let emailRegex = RegexPattern()
             .characterSet(types: .lowerCase, max: 1)
@@ -25,7 +27,7 @@ struct ValidChecker: ValidCheckerProtocol {
         }
         
         guard let _ = email.range(of: emailRegex, options: .regularExpression) else {
-            return .failure(.email)
+            return .failure(.email(message: Self.emailErrorMessage))
         }
         
         return .success(email)
@@ -45,7 +47,7 @@ struct ValidChecker: ValidCheckerProtocol {
             .build() else { return .failure(.unknown) }
         
         guard let _ = password.range(of: passwordRegex, options: .regularExpression) else {
-            return .failure(.password)
+            return .failure(.password(message: Self.passwortErrorMessage))
         }
         
         return .success(password)
