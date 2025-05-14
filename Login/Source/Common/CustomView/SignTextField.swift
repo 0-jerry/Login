@@ -41,15 +41,7 @@ final class SignTextField: UIView {
     
     private let configuration: Configuration?
     private let disposeBag = DisposeBag()
-    
-    let invalid = PublishRelay<Void>()
-    let startEditing = PublishRelay<Void>()
-    var endEditing: Driver<Void> {
-        textField.rx.controlEvent(.editingDidEnd).asDriver() }
-    var exit: Driver<Void> {
-        textField.rx.controlEvent(.editingDidEndOnExit).asDriver() }
-    var text: ControlProperty<String?> { textField.rx.text }
-    
+
     private let textFieldBorder: UIView = {
         let view = UIView()
         view.layer.borderColor = UIColor.black.cgColor
@@ -58,9 +50,10 @@ final class SignTextField: UIView {
         view.backgroundColor = .white
         return view
     }()
-    private let textField: UITextField = {
+    fileprivate let textField: UITextField = {
         let textField = UITextField()
         textField.font = .System.medium20
+        textField.textColor = .black
         return textField
     }()
     private let clearButton: UIButton = {
@@ -182,20 +175,20 @@ final class SignTextField: UIView {
                 owner.textField.text = nil
             }).disposed(by: disposeBag)
         
-        invalid
+        rx.invalid
             .withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.invalidInput()
             }).disposed(by: disposeBag)
         
-        startEditing
+        rx.startEditing
             .withUnretained(self)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { owner, _ in
                 owner.textField.becomeFirstResponder()
             }).disposed(by: disposeBag)
         
-        exit
+        rx.exit
             .drive(with: self,
                    onNext: { owner, _ in
                 owner.textField.resignFirstResponder()
@@ -213,4 +206,22 @@ final class SignTextField: UIView {
         self.errorMessageLabel.isHidden = false
     }
     
+}
+
+extension Reactive where Base: SignTextField {
+    
+    var text: ControlProperty<String?> {
+        return base.textField.rx.text }
+    
+    var invalid: PublishRelay<Void> { return .init() }
+    
+    var startEditing: PublishRelay<Void> { return .init() }
+    
+    var endEditing: Driver<Void> {
+        return base.textField.rx.controlEvent(.editingDidEnd).asDriver()
+    }
+    var exit: Driver<Void> {
+        return base.textField.rx.controlEvent(.editingDidEndOnExit).asDriver()
+    }
+
 }

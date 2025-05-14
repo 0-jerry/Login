@@ -6,9 +6,14 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
+import RxRelay
 
 final class SignUpViewController: UIViewController {
+    
     private let viewModel = SignUpViewModel()
+    private let disposeBag = DisposeBag()
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -65,10 +70,12 @@ final class SignUpViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        bind()
         setupUI()
     }
     
-    func setupUI() {
+    private func setupUI() {
         view.backgroundColor = .white
         view.addSubViews(titleLabel,
                          emailTextField,
@@ -125,6 +132,81 @@ final class SignUpViewController: UIViewController {
             signUpButton.widthAnchor.constraint(equalToConstant: 200),
             signUpButton.heightAnchor.constraint(equalToConstant: 60)
         ])
+    }
+    
+    private func bind() {
+        textBind()
+        editEndBind()
+        responderChangeBind()
+    }
+
+    private func textBind() {
+        emailTextField.rx.text
+            .withUnretained(self)
+            .subscribe(onNext: { owner, text in
+                owner.viewModel.emailRelay.accept(text)
+            }).disposed(by: disposeBag)
+        
+        passwordTextField.rx.text
+            .withUnretained(self)
+            .subscribe(onNext: { owner, text in
+                owner.viewModel.passwordRelay.accept(text)
+            }).disposed(by: disposeBag)
+        
+        confirmPasswordTextField.rx.text
+            .withUnretained(self)
+            .subscribe(onNext: { owner, text in
+                owner.viewModel.confirmPasswordRelay.accept(text)
+            }).disposed(by: disposeBag)
+        
+        nickNameTextField.rx.text
+            .withUnretained(self)
+            .subscribe(onNext: { owner, text in
+                owner.viewModel.nickNameRelay.accept(text)
+            }).disposed(by: disposeBag)
+    }
+    
+    private func editEndBind() {
+        emailTextField.rx.endEditing
+            .drive(with: self, onNext: { owner, _ in
+                owner.viewModel.endEdit.accept(.email)
+            }).disposed(by: disposeBag)
+        
+        passwordTextField.rx.endEditing
+            .drive(with: self, onNext: { owner, _ in
+                owner.viewModel.endEdit.accept(.password)
+            }).disposed(by: disposeBag)
+        
+        confirmPasswordTextField.rx.endEditing
+            .drive(with: self, onNext: { owner, _ in
+                owner.viewModel.endEdit.accept(.confirmPassword)
+            }).disposed(by: disposeBag)
+        
+        nickNameTextField.rx.endEditing
+            .drive(with: self, onNext: { owner, _ in
+                owner.viewModel.endEdit.accept(.nickName)
+            }).disposed(by: disposeBag)
+    }
+    
+    private func responderChangeBind() {
+        emailTextField.rx.exit
+            .drive(with: self, onNext: { owner, _ in
+                owner.passwordTextField.rx.startEditing.accept(())
+            }).disposed(by: disposeBag)
+        
+        passwordTextField.rx.exit
+            .drive(with: self, onNext: { owner, _ in
+                owner.confirmPasswordTextField.rx.startEditing.accept(())
+            }).disposed(by: disposeBag)
+        
+        confirmPasswordTextField.rx.exit
+            .drive(with: self, onNext: { owner, _ in
+                owner.nickNameTextField.rx.startEditing.accept(())
+            }).disposed(by: disposeBag)
+        rx.methodInvoked(#selector(view.touchesBegan)).withUnretained(self)
+            .subscribe(onNext: { owner, _ in
+                owner.view.endEditing(true)
+            }).disposed(by: disposeBag)
     }
 }
 
