@@ -19,7 +19,7 @@ final class RegexPattern {
     private var containsTypes = Set<RegexType>()
     
     @discardableResult
-    func contains(types: RegexType...) -> RegexPattern {
+    func contains(types: RegexType...) -> Self {
         types.forEach { containsTypes.insert($0) }
         
         return self
@@ -27,7 +27,7 @@ final class RegexPattern {
     
     @discardableResult
     func characterSet(types: RegexType...,
-                               min: Int = 1, max: Int? = nil) -> RegexPattern {
+                      min: Int = 1, max: Int? = nil) -> Self {
         var validPattern = validForm(Set(types))
         
         if let quantifier = quantifier(min: min, max: max) {
@@ -104,7 +104,7 @@ final class RegexPattern {
 
 extension RegexPattern {
     @discardableResult
-    func addTLD() -> RegexPattern {
+    func addTLD() -> Self {
         pattern += "(\\.[a-z0-9-]+)+"
         
         return self
