@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct UserInfo {
+struct UserInfo: Equatable {
     let uuid: UUID
     let email: String
     let password: String

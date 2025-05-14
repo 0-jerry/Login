@@ -9,10 +9,22 @@ import Foundation
 
 struct SignInManager {
 
-    private let storage = SignInUserDefault()
+    private let storage: SignInUserDefault
+    private let coreDataManager: UserInfoCoreDataManager
+    private var userInfos: [UserInfo]
     
+    init() {
+        self.storage = SignInUserDefault()
+        self.coreDataManager = UserInfoCoreDataManager()
+        self.userInfos = coreDataManager.read()
+    }
     
-    
+    func current() -> UserInfo? {
+        guard let userInfo = storage.userInfo(),
+              self.userInfos.contains(userInfo) else { return nil }
+        
+        return userInfo
+    }
 }
 
 struct SignInUserDefault {
@@ -25,6 +37,8 @@ struct SignInUserDefault {
         static let nickName: String = "NickName"
     }
     
+
+    
     func set(_ userData: UserInfo) {
         container.set(userData.uuid, forKey: Key.uuid)
         container.set(userData.email, forKey: Key.email)
@@ -32,7 +46,7 @@ struct SignInUserDefault {
         container.set(userData.nickName, forKey: Key.nickName)
     }
     
-    func userDate() -> UserInfo? {
+    func userInfo() -> UserInfo? {
         guard let uuid = container.value(forKey: Key.uuid) as? UUID,
               let email = container.string(forKey: Key.email),
               let password = container.string(forKey: Key.password),
