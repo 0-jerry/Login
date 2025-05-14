@@ -1,5 +1,5 @@
 //
-//  UserInfo+CoreDataProperties.swift
+//  UserInfoCoreData+CoreDataProperties.swift
 //  Login
 //
 //  Created by 0-jerry on 5/15/25.
@@ -13,7 +13,7 @@ import CoreData
 extension UserInfoCoreData {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<UserInfoCoreData> {
-        return NSFetchRequest<UserInfoCoreData>(entityName: "UserInfo")
+        return NSFetchRequest<UserInfoCoreData>(entityName: "UserInfoCoreData")
     }
 
     @NSManaged public var email: String?

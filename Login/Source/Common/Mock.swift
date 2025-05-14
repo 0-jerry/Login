@@ -33,4 +33,9 @@ struct Mock {
         "asd aA123!adw",
         "Aa!1"
     ]
+    
+    static let userInfo = UserInfo(uuid: .init(),
+                                   email: "email",
+                                   password: "pass",
+                                   nickName: "nick")
 }

@@ -1,5 +1,5 @@
 //
-//  UserInfo+CoreDataClass.swift
+//  UserInfoCoreData+CoreDataClass.swift
 //  Login
 //
 //  Created by 0-jerry on 5/15/25.
