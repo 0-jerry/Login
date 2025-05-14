@@ -7,23 +7,33 @@
 
 import Foundation
 
-struct SignInManager {
+final class SignManager {
 
     private let storage: SignInUserDefault
     private let coreDataManager: UserInfoCoreDataManager
-    private var userInfos: [UserInfo]
     
-    init() {
+    static let shared = SignManager()
+    
+    private init() {
         self.storage = SignInUserDefault()
         self.coreDataManager = UserInfoCoreDataManager()
-        self.userInfos = coreDataManager.read()
     }
     
     func current() -> UserInfo? {
-        guard let userInfo = storage.userInfo(),
-              self.userInfos.contains(userInfo) else { return nil }
+        guard let userInfo = storage.userInfo() else { return nil }
         
-        return userInfo
+        let userInfos = coreDataManager.read()
+        
+        if userInfos.contains(userInfo) {
+            return userInfo
+        } else {
+            return nil
+        }
+    }
+    
+    func delete(_ userInfo: UserInfo) {
+        storage.delete()
+        coreDataManager.delete(userInfo)
     }
 }
 
@@ -56,6 +66,13 @@ struct SignInUserDefault {
                         email: email,
                         password: password,
                         nickName: nickName)
+    }
+    
+    func delete() {
+        container.removeObject(forKey: Key.uuid)
+        container.removeObject(forKey: Key.email)
+        container.removeObject(forKey: Key.password)
+        container.removeObject(forKey: Key.nickName)
     }
 }
 

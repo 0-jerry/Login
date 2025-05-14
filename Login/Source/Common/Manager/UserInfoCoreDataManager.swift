@@ -29,36 +29,51 @@ struct UserInfoCoreDataManager {
     private let container: NSPersistentContainer?
     
     private var entity: NSEntityDescription?
-        
+    
     func create(_ userData: UserInfo) {
         guard let entity,
               let container,
               let userInfo = NSManagedObject(entity: entity, insertInto: container.viewContext) as? UserInfoCoreData else { return }
         
         userInfo.set(userData)
+        
         save()
     }
     
     func read() -> [UserInfo] {
-        guard let container else { return [] }
-        do {
-            let results = try container.viewContext.fetch(UserInfoCoreData.fetchRequest())
-            let userInfos = results
-            
-            return userInfos.compactMap { $0.userData() }
-        } catch {
-            print("불러오기 실패")
-            return []
+        let userInfoCoreDatas = fetch()
+        let userInfos = userInfoCoreDatas
+        
+        return userInfos.compactMap { $0.userInfo() }
+    }
+    
+    func delete(_ userInfo: UserInfo) {
+        guard let container else { return }
+        let userInfoCoreDatas = fetch()
+        
+        userInfoCoreDatas.forEach {
+            if $0.userInfo() == userInfo {
+                container.viewContext.delete($0)
+            }
         }
+        
+        save()
     }
 }
 
 extension UserInfoCoreDataManager {
-
+    
+    private func fetch() -> [UserInfoCoreData] {
+        guard let container,
+              let userInfoCoreDatas = try? container.viewContext.fetch(UserInfoCoreData.fetchRequest()) else { return [] }
+        
+        return userInfoCoreDatas
+    }
+    
     private func save() {
         guard let container else {
             print("save 실패")
-                  return }
+            return }
         if container.viewContext.hasChanges {
             do {
                 try container.viewContext.save()

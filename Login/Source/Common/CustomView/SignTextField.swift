@@ -84,7 +84,7 @@ final class SignTextField: UIView {
         return label
     }()
     
-    init(_ configuration: Configuration?) {
+    init(_ configuration: Configuration? = nil) {
         self.configuration = configuration
         super.init(frame: .zero)
         
@@ -121,12 +121,12 @@ final class SignTextField: UIView {
     private func setupUI() {
         self.backgroundColor = .clear
         
-        addSubViews([
+        addSubViews(
             textFieldBorder,
             textField,
             clearButton,
             errorMessageLabel
-        ])
+        )
         
         textFieldBorder.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
