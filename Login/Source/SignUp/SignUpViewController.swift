@@ -36,15 +36,17 @@ final class SignUpViewController: UIViewController {
     
     private let passwordTextField: SignTextField = {
         let config = SignTextField.Configuration(errorMessage: "8자이상, 대/소문자, 숫자, 특수문자 각 1개 이상 필요 합니다.",
-                                                 placeHolder: "비밀번호")
+                                                 placeHolder: "비밀번호",
+                                                 isSecureTextEntry: true)
         let textField = SignTextField(config)
         
         return textField
     }()
     
     private let confirmPasswordTextField: SignTextField = {
-        let config = SignTextField.Configuration(errorMessage: "비밀번호가 다릅니다..",
-                                                 placeHolder: "비밀번호 확인")
+        let config = SignTextField.Configuration(errorMessage: "비밀번호가 다릅니다.",
+                                                 placeHolder: "비밀번호 확인",
+                                                 isSecureTextEntry: true)
         let textField = SignTextField(config)
         
         return textField
@@ -88,14 +90,14 @@ final class SignUpViewController: UIViewController {
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 30),
+            titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 20),
             titleLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20)
         ])
         
         emailTextField.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            emailTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 80),
+            emailTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 32),
             emailTextField.heightAnchor.constraint(equalToConstant: 60),
             emailTextField.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 20),
             emailTextField.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -20)
@@ -103,7 +105,7 @@ final class SignUpViewController: UIViewController {
         
         passwordTextField.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 40),
+            passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 32),
             passwordTextField.heightAnchor.constraint(equalTo: emailTextField.heightAnchor),
             passwordTextField.leadingAnchor.constraint(equalTo: emailTextField.leadingAnchor),
             passwordTextField.trailingAnchor.constraint(equalTo: emailTextField.trailingAnchor)
@@ -111,7 +113,7 @@ final class SignUpViewController: UIViewController {
         
         confirmPasswordTextField.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            confirmPasswordTextField.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 40),
+            confirmPasswordTextField.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 32),
             confirmPasswordTextField.heightAnchor.constraint(equalTo: emailTextField.heightAnchor),
             confirmPasswordTextField.leadingAnchor.constraint(equalTo: emailTextField.leadingAnchor),
             confirmPasswordTextField.trailingAnchor.constraint(equalTo: emailTextField.trailingAnchor)
@@ -119,7 +121,7 @@ final class SignUpViewController: UIViewController {
         
         nickNameTextField.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            nickNameTextField.topAnchor.constraint(equalTo: confirmPasswordTextField.bottomAnchor, constant: 40),
+            nickNameTextField.topAnchor.constraint(equalTo: confirmPasswordTextField.bottomAnchor, constant: 32),
             nickNameTextField.heightAnchor.constraint(equalTo: emailTextField.heightAnchor),
             nickNameTextField.leadingAnchor.constraint(equalTo: emailTextField.leadingAnchor),
             nickNameTextField.trailingAnchor.constraint(equalTo: emailTextField.trailingAnchor)
@@ -138,28 +140,30 @@ final class SignUpViewController: UIViewController {
         textBind()
         editEndBind()
         responderChangeBind()
+        validBind()
+        buttonBind()
     }
 
     private func textBind() {
-        emailTextField.rx.text
+        emailTextField.text
             .withUnretained(self)
             .subscribe(onNext: { owner, text in
                 owner.viewModel.emailRelay.accept(text)
             }).disposed(by: disposeBag)
         
-        passwordTextField.rx.text
+        passwordTextField.text
             .withUnretained(self)
             .subscribe(onNext: { owner, text in
                 owner.viewModel.passwordRelay.accept(text)
             }).disposed(by: disposeBag)
         
-        confirmPasswordTextField.rx.text
+        confirmPasswordTextField.text
             .withUnretained(self)
             .subscribe(onNext: { owner, text in
                 owner.viewModel.confirmPasswordRelay.accept(text)
             }).disposed(by: disposeBag)
         
-        nickNameTextField.rx.text
+        nickNameTextField.text
             .withUnretained(self)
             .subscribe(onNext: { owner, text in
                 owner.viewModel.nickNameRelay.accept(text)
@@ -167,45 +171,78 @@ final class SignUpViewController: UIViewController {
     }
     
     private func editEndBind() {
-        emailTextField.rx.endEditing
+        emailTextField.endEditing
             .drive(with: self, onNext: { owner, _ in
                 owner.viewModel.endEdit.accept(.email)
             }).disposed(by: disposeBag)
         
-        passwordTextField.rx.endEditing
+        passwordTextField.endEditing
             .drive(with: self, onNext: { owner, _ in
                 owner.viewModel.endEdit.accept(.password)
             }).disposed(by: disposeBag)
         
-        confirmPasswordTextField.rx.endEditing
+        confirmPasswordTextField.endEditing
             .drive(with: self, onNext: { owner, _ in
                 owner.viewModel.endEdit.accept(.confirmPassword)
             }).disposed(by: disposeBag)
         
-        nickNameTextField.rx.endEditing
+        nickNameTextField.endEditing
             .drive(with: self, onNext: { owner, _ in
                 owner.viewModel.endEdit.accept(.nickName)
             }).disposed(by: disposeBag)
     }
     
     private func responderChangeBind() {
-        emailTextField.rx.exit
+        emailTextField.exit
             .drive(with: self, onNext: { owner, _ in
-                owner.passwordTextField.rx.startEditing.accept(())
+                owner.passwordTextField.startEditing.accept(())
             }).disposed(by: disposeBag)
         
-        passwordTextField.rx.exit
+        passwordTextField.exit
             .drive(with: self, onNext: { owner, _ in
-                owner.confirmPasswordTextField.rx.startEditing.accept(())
+                owner.confirmPasswordTextField.startEditing.accept(())
             }).disposed(by: disposeBag)
         
-        confirmPasswordTextField.rx.exit
+        confirmPasswordTextField.exit
             .drive(with: self, onNext: { owner, _ in
-                owner.nickNameTextField.rx.startEditing.accept(())
+                owner.nickNameTextField.startEditing.accept(())
             }).disposed(by: disposeBag)
+        
         rx.methodInvoked(#selector(view.touchesBegan)).withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.view.endEditing(true)
+            }).disposed(by: disposeBag)
+    }
+    
+    private func validBind() {
+        viewModel.invalid
+            .drive(with: self, onNext: { owner, type in
+                switch type {
+                case .email:
+                    owner.emailTextField.invalid.accept(())
+                case .password:
+                    owner.passwordTextField.invalid.accept(())
+                case .confirmPassword:
+                    owner.confirmPasswordTextField.invalid.accept(())
+                case .nickName:
+                    owner.nickNameTextField.invalid.accept(())
+                case .unknown:
+                    return
+                }
+            }).disposed(by: disposeBag)
+    }
+    
+    private func buttonBind() {
+        viewModel.ready
+            .drive(with: self,
+                   onNext: { owner, ready in
+            owner.signUpButton.isEnabled = ready
+        }).disposed(by: disposeBag)
+        
+        signUpButton.rx.tap
+            .withUnretained(self)
+            .subscribe(onNext: { owner, _ in
+                owner.viewModel.create.accept(())
             }).disposed(by: disposeBag)
     }
 }

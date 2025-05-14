@@ -19,6 +19,11 @@ final class SignManager {
         self.coreDataManager = UserInfoCoreDataManager()
     }
     
+    func signUp(_ userInfo: UserInfo) {
+        storage.set(userInfo)
+        coreDataManager.create(userInfo)
+    }
+    
     func current() -> UserInfo? {
         guard let userInfo = storage.userInfo() else { return nil }
         
@@ -49,18 +54,20 @@ struct SignInUserDefault {
     
 
     
-    func set(_ userData: UserInfo) {
-        container.set(userData.uuid, forKey: Key.uuid)
-        container.set(userData.email, forKey: Key.email)
-        container.set(userData.password, forKey: Key.password)
-        container.set(userData.nickName, forKey: Key.nickName)
+    func set(_ userInfo: UserInfo) {
+        let uuidString = userInfo.uuid.uuidString
+        container.set(uuidString, forKey: Key.uuid)
+        container.set(userInfo.email, forKey: Key.email)
+        container.set(userInfo.password, forKey: Key.password)
+        container.set(userInfo.nickName, forKey: Key.nickName)
     }
     
     func userInfo() -> UserInfo? {
-        guard let uuid = container.value(forKey: Key.uuid) as? UUID,
+        guard let uuidString = container.string(forKey: Key.uuid),
               let email = container.string(forKey: Key.email),
               let password = container.string(forKey: Key.password),
-              let nickName = container.string(forKey: Key.nickName) else { return nil }
+              let nickName = container.string(forKey: Key.nickName),
+              let uuid = UUID(uuidString: uuidString) else { return nil }
         
         return UserInfo(uuid: uuid,
                         email: email,

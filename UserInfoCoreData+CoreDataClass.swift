@@ -28,15 +28,15 @@ public class UserInfoCoreData: NSManagedObject {
               let uuid = value(forKey: Key.uuid) as? UUID else { return nil }
         
         return UserInfo(uuid: uuid,
-                 email: email,
-                 password: password,
-                 nickName: nickName)
+                        email: email,
+                        password: password,
+                        nickName: nickName)
     }
     
-    func set(_ userData: UserInfo) {
-        setValue(userData.email, forKey: Key.email)
-        setValue(userData.password, forKey: Key.password)
-        setValue(userData.nickName, forKey: Key.nickName)
-        setValue(userData.uuid, forKey: Key.uuid)
+    func set(_ userInfo: UserInfo) {
+        setValue(userInfo.email, forKey: Key.email)
+        setValue(userInfo.password, forKey: Key.password)
+        setValue(userInfo.nickName, forKey: Key.nickName)
+        setValue(userInfo.uuid, forKey: Key.uuid)
     }
 }

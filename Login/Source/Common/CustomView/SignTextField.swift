@@ -41,7 +41,15 @@ final class SignTextField: UIView {
     
     private let configuration: Configuration?
     private let disposeBag = DisposeBag()
-
+    
+    let invalid = PublishRelay<Void>()
+    let startEditing = PublishRelay<Void>()
+    var endEditing: Driver<Void> {
+        textField.rx.controlEvent(.editingDidEnd).asDriver() }
+    var exit: Driver<Void> {
+        textField.rx.controlEvent(.editingDidEndOnExit).asDriver() }
+    var text: ControlProperty<String?> { textField.rx.text }
+    
     private let textFieldBorder: UIView = {
         let view = UIView()
         view.layer.borderColor = UIColor.black.cgColor
@@ -50,10 +58,9 @@ final class SignTextField: UIView {
         view.backgroundColor = .white
         return view
     }()
-    fileprivate let textField: UITextField = {
+    private let textField: UITextField = {
         let textField = UITextField()
         textField.font = .System.medium20
-        textField.textColor = .black
         return textField
     }()
     private let clearButton: UIButton = {
@@ -69,7 +76,7 @@ final class SignTextField: UIView {
     private let errorMessageLabel: UILabel = {
         let label = UILabel()
         
-        label.font = .System.regular16
+        label.font = .System.regular12
         label.textColor = .systemRed
         label.textAlignment = .right
         label.isHidden = true
@@ -133,7 +140,8 @@ final class SignTextField: UIView {
         NSLayoutConstraint.activate([
             textField.topAnchor.constraint(equalTo: textFieldBorder.topAnchor, constant: 4),
             textField.bottomAnchor.constraint(equalTo: textFieldBorder.bottomAnchor, constant: -4),
-            textField.leadingAnchor.constraint(equalTo: textFieldBorder.leadingAnchor, constant: 12)
+            textField.leadingAnchor.constraint(equalTo: textFieldBorder.leadingAnchor, constant: 12),
+            textField.trailingAnchor.constraint(equalTo: clearButton.leadingAnchor, constant: 4)
         ])
         
         clearButton.translatesAutoresizingMaskIntoConstraints = false
@@ -175,20 +183,20 @@ final class SignTextField: UIView {
                 owner.textField.text = nil
             }).disposed(by: disposeBag)
         
-        rx.invalid
+        invalid
             .withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.invalidInput()
             }).disposed(by: disposeBag)
         
-        rx.startEditing
+        startEditing
             .withUnretained(self)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { owner, _ in
                 owner.textField.becomeFirstResponder()
             }).disposed(by: disposeBag)
         
-        rx.exit
+        exit
             .drive(with: self,
                    onNext: { owner, _ in
                 owner.textField.resignFirstResponder()
@@ -206,22 +214,4 @@ final class SignTextField: UIView {
         self.errorMessageLabel.isHidden = false
     }
     
-}
-
-extension Reactive where Base: SignTextField {
-    
-    var text: ControlProperty<String?> {
-        return base.textField.rx.text }
-    
-    var invalid: PublishRelay<Void> { return .init() }
-    
-    var startEditing: PublishRelay<Void> { return .init() }
-    
-    var endEditing: Driver<Void> {
-        return base.textField.rx.controlEvent(.editingDidEnd).asDriver()
-    }
-    var exit: Driver<Void> {
-        return base.textField.rx.controlEvent(.editingDidEndOnExit).asDriver()
-    }
-
 }

@@ -42,11 +42,24 @@ final class SignUpViewModel {
         readyRelay.asDriver(onErrorDriveWith: .empty())
     }
     let endEdit = PublishRelay<EditType>()
-    
+    let create = PublishRelay<Void>()
     private func bind() {
         endEdit.withUnretained(self)
             .subscribe(onNext: { owner, type in
                 owner.check(type)
+            }).disposed(by: disposeBag)
+        
+        create.withUnretained(self)
+            .throttle(.seconds(1), scheduler: MainScheduler.instance)
+            .subscribe(onNext: { owner, _ in
+                guard let email = owner.emailRelay.value,
+                      let password = owner.passwordRelay.value,
+                      let nickName = owner.nickNameRelay.value else { return }
+                let userInfo = UserInfo(email: email,
+                                        password: password,
+                                        nickName: nickName)
+                
+                owner.signInManager.signUp(userInfo)
             }).disposed(by: disposeBag)
     }
     
@@ -72,6 +85,7 @@ final class SignUpViewModel {
             readyTypes.insert(.email)
         } else {
             readyTypes.remove(.email)
+            invalidRelay.accept(.email)
         }
     }
     private func checkPassword() {
@@ -85,6 +99,7 @@ final class SignUpViewModel {
             readyTypes.insert(.password)
         } else {
             readyTypes.remove(.password)
+            invalidRelay.accept(.password)
         }
     }
     private func checkConfirmPassword() {

@@ -12,4 +12,14 @@ struct UserInfo: Equatable {
     let email: String
     let password: String
     let nickName: String
+    
+    init(uuid: UUID = .init(),
+         email: String,
+         password: String,
+         nickName: String) {
+        self.uuid = uuid
+        self.email = email
+        self.password = password
+        self.nickName = nickName
+    }
 }

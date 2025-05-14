@@ -30,12 +30,12 @@ struct UserInfoCoreDataManager {
     
     private var entity: NSEntityDescription?
     
-    func create(_ userData: UserInfo) {
+    func create(_ userInfo: UserInfo) {
         guard let entity,
               let container,
-              let userInfo = NSManagedObject(entity: entity, insertInto: container.viewContext) as? UserInfoCoreData else { return }
+              let userInfoCoreData = NSManagedObject(entity: entity, insertInto: container.viewContext) as? UserInfoCoreData else { return }
         
-        userInfo.set(userData)
+        userInfoCoreData.set(userInfo)
         
         save()
     }
