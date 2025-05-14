@@ -9,11 +9,10 @@
 import Foundation
 import CoreData
 
-
 extension UserInfoCoreData {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<UserInfoCoreData> {
-        return NSFetchRequest<UserInfoCoreData>(entityName: "UserInfoCoreData")
+        return NSFetchRequest<UserInfoCoreData>(entityName: Self.classID)
     }
 
     @NSManaged public var email: String?
