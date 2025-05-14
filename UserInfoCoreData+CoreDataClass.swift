@@ -21,7 +21,7 @@ public class UserInfoCoreData: NSManagedObject {
         static let uuid = "uuid"
     }
     
-    func userData() -> UserInfo? {
+    func userInfo() -> UserInfo? {
         guard let email = value(forKey: Key.email) as? String,
               let password = value(forKey: Key.password) as? String,
               let nickName = value(forKey: Key.nickName) as? String,
