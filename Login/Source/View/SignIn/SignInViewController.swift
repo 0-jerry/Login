@@ -6,8 +6,13 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
+import RxRelay
 
 final class SignInViewController: UIViewController {
+    private let viewModel = SignInViewModel()
+    private let disposeBag = DisposeBag()
     
     private let guideLabel: UILabel = {
         let label = UILabel()
@@ -29,7 +34,17 @@ final class SignInViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        bind()
         setupUI()
+    }
+
+    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     private func setupUI() {
@@ -50,6 +65,32 @@ final class SignInViewController: UIViewController {
             signUpButton.heightAnchor.constraint(equalToConstant: 60),
             signUpButton.widthAnchor.constraint(equalToConstant: 200)
         ])
+    }
+    
+    private func bind() {
+        
+        rx.methodInvoked(#selector(viewWillAppear))
+            .withUnretained(self)
+            .subscribe(onNext: { owner, _ in
+                owner.viewModel.load.accept(())
+            }).disposed(by: disposeBag)
+        
+        viewModel.signIn
+            .drive(with: self,
+                   onNext: { owner, bool in
+                guard bool else { return }
+                owner.navigationController?
+                    .pushViewController(WelcomeViewController(), animated: true)
+            }).disposed(by: disposeBag)
+        
+        signUpButton.rx.tap
+            .throttle(.seconds(1),
+                      scheduler: MainScheduler.instance)
+            .withUnretained(self)
+            .subscribe(onNext: { owner, _ in
+                owner.navigationController?.pushViewController(SignUpViewController(),
+                                        animated: true)
+            }).disposed(by: disposeBag)
     }
 }
 

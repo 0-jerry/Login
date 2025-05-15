@@ -6,8 +6,15 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
+import RxRelay
 
 final class WelcomeViewController: UIViewController {
+    
+    private let viewModel = WelcomeViewModel()
+    private let disposeBag = DisposeBag()
+    
     private let welcomeMessageLabel: UILabel = {
         let label = UILabel()
         
@@ -36,9 +43,12 @@ final class WelcomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        bind()
+        navigationController?.isNavigationBarHidden = true
     }
     
     private func setupUI() {
+        view.backgroundColor = .white
         view.addSubViews(welcomeMessageLabel,
                          logoutButton,
                          leaveButton)
@@ -67,6 +77,33 @@ final class WelcomeViewController: UIViewController {
             leaveButton.widthAnchor.constraint(equalToConstant: 200),
             leaveButton.heightAnchor.constraint(equalToConstant: 60)
         ])
+    }
+    
+    private func bind() {
+        logoutButton.rx.tap
+            .withUnretained(self)
+            .subscribe(onNext: { owner, _ in
+                owner.viewModel.logoutRelay.accept(())
+                owner.navigationController?.popViewController(animated: true)
+            }).disposed(by: disposeBag)
+        
+        leaveButton.rx.tap
+            .withUnretained(self)
+            .subscribe(onNext: { owner, _ in
+                owner.viewModel.leaveRelay.accept(())
+                owner.navigationController?.popViewController(animated: true)
+            }).disposed(by: disposeBag)
+        
+        viewModel.userInfo
+            .drive(with: self, onNext: { owner, userInfo in
+                guard let userInfo else { return }
+                owner.configureUserInfo(userInfo)
+            }).disposed(by: disposeBag)
+    }
+    
+    private func configureUserInfo(_ userInfo: UserInfo) {
+        let message = String(format: "%@ 님 환영합니다", userInfo.nickName)
+        welcomeMessageLabel.text = message
     }
 
 }

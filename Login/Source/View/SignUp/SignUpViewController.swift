@@ -243,6 +243,7 @@ final class SignUpViewController: UIViewController {
             .withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.viewModel.create.accept(())
+                owner.navigationController?.popViewController(animated: true)
             }).disposed(by: disposeBag)
     }
 }

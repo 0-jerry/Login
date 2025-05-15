@@ -26,7 +26,14 @@ struct ValidChecker: ValidCheckerProtocol {
             return false
         }
         
-        guard let _ = email.range(of: emailRegex, options: .regularExpression) else {
+        guard let _ = email.range(of: emailRegex,
+                                  options: .regularExpression) else {
+            return false
+        }
+        //FIXME: - 이메일 중복과 같은 케이스들을 고려해 에러메세지 수정방식을 구현해야함
+        guard !UserInfoCoreDataManager()
+            .read()
+            .contains(where: { $0.email == email}) else {
             return false
         }
         

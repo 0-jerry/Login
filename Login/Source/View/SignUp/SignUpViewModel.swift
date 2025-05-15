@@ -43,6 +43,7 @@ final class SignUpViewModel {
     }
     let endEdit = PublishRelay<EditType>()
     let create = PublishRelay<Void>()
+    
     private func bind() {
         endEdit.withUnretained(self)
             .subscribe(onNext: { owner, type in

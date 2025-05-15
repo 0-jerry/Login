@@ -19,6 +19,10 @@ final class SignManager {
         self.coreDataManager = UserInfoCoreDataManager()
     }
     
+    func logout() {
+        storage.delete()
+    }
+    
     func signUp(_ userInfo: UserInfo) {
         storage.set(userInfo)
         coreDataManager.create(userInfo)
