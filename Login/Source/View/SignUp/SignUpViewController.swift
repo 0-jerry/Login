@@ -75,6 +75,7 @@ final class SignUpViewController: UIViewController {
         
         bind()
         setupUI()
+        self.navigationController?.isNavigationBarHidden = false
     }
     
     private func setupUI() {
@@ -243,7 +244,7 @@ final class SignUpViewController: UIViewController {
             .withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.viewModel.create.accept(())
-                owner.navigationController?.popViewController(animated: true)
+                owner.navigationController?.popViewController(animated: false)
             }).disposed(by: disposeBag)
     }
 }

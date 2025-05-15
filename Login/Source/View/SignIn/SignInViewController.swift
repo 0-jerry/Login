@@ -37,6 +37,7 @@ final class SignInViewController: UIViewController {
         
         bind()
         setupUI()
+        self.navigationController?.isNavigationBarHidden = true
     }
 
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
@@ -80,7 +81,7 @@ final class SignInViewController: UIViewController {
                    onNext: { owner, bool in
                 guard bool else { return }
                 owner.navigationController?
-                    .pushViewController(WelcomeViewController(), animated: true)
+                    .pushViewController(WelcomeViewController(), animated: false)
             }).disposed(by: disposeBag)
         
         signUpButton.rx.tap
