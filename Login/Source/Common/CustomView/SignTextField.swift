@@ -61,6 +61,7 @@ final class SignTextField: UIView {
     private let textField: UITextField = {
         let textField = UITextField()
         textField.font = .System.medium20
+        textField.textColor = .black
         return textField
     }()
     private let clearButton: UIButton = {
