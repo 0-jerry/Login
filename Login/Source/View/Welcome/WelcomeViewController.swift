@@ -18,7 +18,6 @@ final class WelcomeViewController: UIViewController {
     private let welcomeMessageLabel: UILabel = {
         let label = UILabel()
         
-        label.text = "테스트용 문자"
         label.font = .System.medium20
         label.textColor = .black
         label.textAlignment = .center
