@@ -8,8 +8,29 @@
 import UIKit
 import CoreData
 
-struct UserInfoCoreDataManager {
-    
+enum CoreDataSuccess {
+    case create
+    case read(userInfos: [UserInfo])
+    case delete
+}
+
+enum CoreDateError: Error {
+    case creat
+    case read
+    case delete
+    case save
+    case container
+    case unknown(error: Error)
+}
+
+protocol UserInfoCoreDataManagerProtocol {
+    func create(_ userInfo: UserInfo) -> Result<CoreDataSuccess, CoreDateError>
+    func read() -> Result<CoreDataSuccess, CoreDateError>
+    func delete(_ userInfo: UserInfo) -> Result<CoreDataSuccess, CoreDateError>
+}
+
+struct UserInfoCoreDataManager: UserInfoCoreDataManagerProtocol {
+
     init() {
         self.container = {
             guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
@@ -30,56 +51,75 @@ struct UserInfoCoreDataManager {
     
     private var entity: NSEntityDescription?
     
-    func create(_ userInfo: UserInfo) {
+    func create(_ userInfo: UserInfo) -> Result<CoreDataSuccess, CoreDateError> {
         guard let entity,
-              let container,
-              let userInfoCoreData = NSManagedObject(entity: entity, insertInto: container.viewContext) as? UserInfoCoreData else { return }
+              let container else { return .failure(.container) }
+        
+        guard let userInfoCoreData = NSManagedObject(entity: entity,
+                                               insertInto: container.viewContext) as? UserInfoCoreData else {
+            return .failure(.creat)
+        }
         
         userInfoCoreData.set(userInfo)
         
-        save()
+        do {
+            try save()
+            
+            return .success(.create)
+        } catch let error as CoreDateError {
+            return .failure(error)
+        } catch let error {
+            return .failure(.unknown(error: error))
+        }
     }
     
-    func read() -> [UserInfo] {
-        let userInfoCoreDatas = fetch()
-        let userInfos = userInfoCoreDatas
-        
-        return userInfos.compactMap { $0.userInfo() }
+    func read() -> Result<CoreDataSuccess, CoreDateError> {
+        do {
+            let userInfos = try self.fetch().compactMap { $0.userInfo() }
+            return .success(.read(userInfos: userInfos))
+        } catch let error as CoreDateError {
+            return .failure(error)
+        } catch {
+            return .failure(.unknown(error: error))
+        }
     }
     
-    func delete(_ userInfo: UserInfo) {
-        guard let container else { return }
-        let userInfoCoreDatas = fetch()
-        
-        userInfoCoreDatas.forEach {
-            if $0.userInfo() == userInfo {
-                container.viewContext.delete($0)
-            }
+    func delete(_ userInfo: UserInfo) -> Result<CoreDataSuccess, CoreDateError>{
+        guard let container else {
+            return .failure(.container)
         }
         
-        save()
+        do {
+            let userInfoCoreDatas = try self.fetch()
+            userInfoCoreDatas.forEach {
+                if $0.userInfo() == userInfo {
+                    container.viewContext.delete($0)
+                }
+            }
+            try save()
+            
+            return .success(.delete)
+        } catch let error as CoreDateError {
+            return .failure(error)
+        } catch let error {
+            return .failure(.unknown(error: error))
+        }
     }
 }
 
 extension UserInfoCoreDataManager {
     
-    private func fetch() -> [UserInfoCoreData] {
-        guard let container,
-              let userInfoCoreDatas = try? container.viewContext.fetch(UserInfoCoreData.fetchRequest()) else { return [] }
+    private func fetch() throws -> [UserInfoCoreData] {
+        guard let container else { throw CoreDateError.container }
+        let userInfoCoreDatas = try container.viewContext
+            .fetch(UserInfoCoreData.fetchRequest())
         
         return userInfoCoreDatas
     }
     
-    private func save() {
-        guard let container else {
-            print("save 실패")
-            return }
-        if container.viewContext.hasChanges {
-            do {
-                try container.viewContext.save()
-            } catch {
-                print("데이터 저장 실패")
-            }
-        }
+    private func save() throws {
+        guard let container else { throw CoreDateError.container }
+        guard container.viewContext.hasChanges else { return }
+        try container.viewContext.save()
     }
 }
