@@ -26,29 +26,29 @@ final class SignUpViewController: UIViewController {
         return label
     }()
     
-    private let emailTextField: SignTextField = {
+    private lazy var emailTextField: SignTextField = {
         let config = SignTextField.Configuration(errorMessage: "영문 소문자로 시작, 8~20자, 올바른 이메일 형식이 필요합니다.",
                                                  placeHolder: "이메일")
         let textField = SignTextField(config)
-        
+        textField.nextTextField = passwordTextField
         return textField
     }()
     
-    private let passwordTextField: SignTextField = {
+    private lazy var passwordTextField: SignTextField = {
         let config = SignTextField.Configuration(errorMessage: "8자이상, 대/소문자, 숫자, 특수문자 각 1개 이상 필요 합니다.",
                                                  placeHolder: "비밀번호",
                                                  isSecureTextEntry: true)
         let textField = SignTextField(config)
-        
+        textField.nextTextField = confirmPasswordTextField
         return textField
     }()
     
-    private let confirmPasswordTextField: SignTextField = {
+    private lazy var confirmPasswordTextField: SignTextField = {
         let config = SignTextField.Configuration(errorMessage: "비밀번호가 다릅니다.",
                                                  placeHolder: "비밀번호 확인",
                                                  isSecureTextEntry: true)
         let textField = SignTextField(config)
-        
+        textField.nextTextField = nickNameTextField
         return textField
     }()
     
@@ -194,21 +194,6 @@ final class SignUpViewController: UIViewController {
     }
     
     private func responderChangeBind() {
-        emailTextField.exit
-            .drive(with: self, onNext: { owner, _ in
-                owner.passwordTextField.startEditing.accept(())
-            }).disposed(by: disposeBag)
-        
-        passwordTextField.exit
-            .drive(with: self, onNext: { owner, _ in
-                owner.confirmPasswordTextField.startEditing.accept(())
-            }).disposed(by: disposeBag)
-        
-        confirmPasswordTextField.exit
-            .drive(with: self, onNext: { owner, _ in
-                owner.nickNameTextField.startEditing.accept(())
-            }).disposed(by: disposeBag)
-        
         rx.methodInvoked(#selector(view.touchesBegan)).withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.view.endEditing(true)

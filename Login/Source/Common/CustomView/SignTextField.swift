@@ -46,9 +46,8 @@ final class SignTextField: UIView {
     let startEditing = PublishRelay<Void>()
     var endEditing: Driver<Void> {
         textField.rx.controlEvent(.editingDidEnd).asDriver() }
-    var exit: Driver<Void> {
-        textField.rx.controlEvent(.editingDidEndOnExit).asDriver() }
     var text: ControlProperty<String?> { textField.rx.text }
+    weak var nextTextField: SignTextField?
     
     private let textFieldBorder: UIView = {
         let view = UIView()
@@ -197,10 +196,11 @@ final class SignTextField: UIView {
                 owner.textField.becomeFirstResponder()
             }).disposed(by: disposeBag)
         
-        exit
-            .drive(with: self,
-                   onNext: { owner, _ in
-                owner.textField.resignFirstResponder()
+        textField.rx.controlEvent(.editingDidEndOnExit)
+            .withUnretained(self)
+            .subscribe(onNext: { owner, _ in
+                guard let nextTextField = owner.nextTextField else { return }
+                nextTextField.startEditing.accept(())
             }).disposed(by: disposeBag)
     }
     
