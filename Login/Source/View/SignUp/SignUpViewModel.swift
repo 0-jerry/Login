@@ -22,7 +22,7 @@ final class SignUpViewModel {
     init() { bind() }
     
     private let signInManager = SignManager.shared
-    private let validChecker = ValidChecker()
+    private let validChecker = ValidChecker(container: UserInfoCoreDataManager.init())
     private let disposeBag = DisposeBag()
     
     private var readyTypes = Set<EditType>()
@@ -32,9 +32,9 @@ final class SignUpViewModel {
     let confirmPasswordRelay = BehaviorRelay<String?>(value: "")
     let nickNameRelay = BehaviorRelay<String?>(value: "")
     
-    private let invalidRelay = PublishRelay<SignUpError>()
-    var invalid: Driver<SignUpError> {
-        invalidRelay.asDriver(onErrorDriveWith: .empty())
+    private let errorRelay = PublishRelay<SignUpError>()
+    var error: Driver<SignUpError> {
+        errorRelay.asDriver(onErrorDriveWith: .empty())
     }
     
     private let readyRelay = PublishRelay<Bool>()
@@ -66,62 +66,26 @@ final class SignUpViewModel {
     
     private func check(_ editType: EditType) {
         switch editType {
-        case .email: checkEmail()
-        case .password: checkPassword()
-        case .confirmPassword: checkConfirmPassword()
-        case .nickName: checkNickName()
+        case .email:
+            checkEmail()
+        case .password:
+            checkPassword()
+        case .confirmPassword:
+            checkConfirmPassword()
+        case .nickName:
+            checkNickName()
         }
         
         readyRelay.accept(readyTypes.count == 4)
     }
-    
+    //TODO: 에러 체크
     private func checkEmail() {
-        guard let email = emailRelay.value else {
-            invalidRelay.accept(.email)
-            readyTypes.remove(.email)
-            return
-        }
-        
-        if validChecker.email(email) {
-            readyTypes.insert(.email)
-        } else {
-            readyTypes.remove(.email)
-            invalidRelay.accept(.email)
-        }
     }
     private func checkPassword() {
-        guard let password = passwordRelay.value else {
-            invalidRelay.accept(.password)
-            readyTypes.remove(.password)
-            return
-        }
-        
-        if validChecker.password(password) {
-            readyTypes.insert(.password)
-        } else {
-            readyTypes.remove(.password)
-            invalidRelay.accept(.password)
-        }
     }
     private func checkConfirmPassword() {
-        guard let password = passwordRelay.value,
-              let confirmPassword = confirmPasswordRelay.value,
-              password == confirmPassword else {
-            invalidRelay.accept(.confirmPassword)
-            readyTypes.remove(.confirmPassword)
-            return
-        }
-        
-        readyTypes.insert(.confirmPassword)
     }
     private func checkNickName() {
-        guard let nickName = nickNameRelay.value,
-              !nickName.isEmpty else {
-            invalidRelay.accept(.nickName)
-            readyTypes.remove(.nickName)
-            return
-        }
-        readyTypes.insert(.nickName)
     }
 
 }

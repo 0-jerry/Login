@@ -16,8 +16,6 @@ final class SignTextField: UIView {
         let textColor: UIColor?
         let borderColor: UIColor?
         let backgroundColor: UIColor?
-        
-        let errorMessage: String?
         let placeHolder: String?
         let isSecureTextEntry: Bool
         
@@ -25,14 +23,12 @@ final class SignTextField: UIView {
              textColor: UIColor? = nil,
              borderColor: UIColor? = nil,
              backgroundColor: UIColor? = nil,
-             errorMessage: String? = nil,
              placeHolder: String? = nil,
              isSecureTextEntry: Bool = false) {
             self.textFieldFont = textFieldFont
             self.textColor = textColor
             self.borderColor = borderColor
             self.backgroundColor = backgroundColor
-            self.errorMessage = errorMessage
             self.placeHolder = placeHolder
             self.isSecureTextEntry = isSecureTextEntry
         }
@@ -47,6 +43,7 @@ final class SignTextField: UIView {
     var endEditing: Driver<Void> {
         textField.rx.controlEvent(.editingDidEnd).asDriver() }
     var text: ControlProperty<String?> { textField.rx.text }
+    var error = PublishRelay<SignUpError>()
     weak var nextTextField: SignTextField?
     
     private let textFieldBorder: UIView = {
@@ -99,7 +96,6 @@ final class SignTextField: UIView {
     
     private func configure() {
         guard let configuration = configuration else { return }
-        errorMessageLabel.text = configuration.errorMessage
         textField.placeholder = configuration.placeHolder
         textField.isSecureTextEntry = configuration.isSecureTextEntry
         
@@ -163,6 +159,7 @@ final class SignTextField: UIView {
     
     private func bind() {
         textField.rx.controlEvent(.editingDidBegin)
+            .observe(on: MainScheduler.instance)
             .withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.clearButton.isHidden = false
@@ -170,6 +167,7 @@ final class SignTextField: UIView {
             }).disposed(by: disposeBag)
         
         textField.rx.controlEvent(.editingDidEnd)
+            .observe(on: MainScheduler.instance)
             .withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.clearButton.isHidden = true
@@ -184,23 +182,34 @@ final class SignTextField: UIView {
             }).disposed(by: disposeBag)
         
         invalid
+            .observe(on: MainScheduler.instance)
             .withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.invalidInput()
             }).disposed(by: disposeBag)
         
         startEditing
-            .withUnretained(self)
             .observe(on: MainScheduler.instance)
+            .withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 owner.textField.becomeFirstResponder()
             }).disposed(by: disposeBag)
         
         textField.rx.controlEvent(.editingDidEndOnExit)
+            .observe(on: MainScheduler.instance)
             .withUnretained(self)
             .subscribe(onNext: { owner, _ in
                 guard let nextTextField = owner.nextTextField else { return }
                 nextTextField.startEditing.accept(())
+            }).disposed(by: disposeBag)
+        
+        error
+            .map { $0.errorMessage }
+            .observe(on: MainScheduler.instance)
+            .withUnretained(self)
+            .subscribe(onNext: { owner, errorMessage in
+                owner.errorMessageLabel.text = errorMessage
+                owner.errorMessageLabel.isHidden = false
             }).disposed(by: disposeBag)
     }
     

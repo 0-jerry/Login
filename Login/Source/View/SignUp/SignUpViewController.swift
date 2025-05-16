@@ -26,17 +26,16 @@ final class SignUpViewController: UIViewController {
         return label
     }()
     
-    private lazy var emailTextField: SignTextField = {
-        let config = SignTextField.Configuration(errorMessage: "영문 소문자로 시작, 8~20자, 올바른 이메일 형식이 필요합니다.",
-                                                 placeHolder: "이메일")
+    private var emailTextField: SignTextField = {
+        let config = SignTextField.Configuration(placeHolder: "이메일")
+        
         let textField = SignTextField(config)
-        textField.nextTextField = passwordTextField
+//        textField.nextTextField = passwordTextField
         return textField
     }()
     
     private lazy var passwordTextField: SignTextField = {
-        let config = SignTextField.Configuration(errorMessage: "8자이상, 대/소문자, 숫자, 특수문자 각 1개 이상 필요 합니다.",
-                                                 placeHolder: "비밀번호",
+        let config = SignTextField.Configuration(placeHolder: "비밀번호",
                                                  isSecureTextEntry: true)
         let textField = SignTextField(config)
         textField.nextTextField = confirmPasswordTextField
@@ -44,8 +43,7 @@ final class SignUpViewController: UIViewController {
     }()
     
     private lazy var confirmPasswordTextField: SignTextField = {
-        let config = SignTextField.Configuration(errorMessage: "비밀번호가 다릅니다.",
-                                                 placeHolder: "비밀번호 확인",
+        let config = SignTextField.Configuration(placeHolder: "비밀번호 확인",
                                                  isSecureTextEntry: true)
         let textField = SignTextField(config)
         textField.nextTextField = nickNameTextField
@@ -53,8 +51,7 @@ final class SignUpViewController: UIViewController {
     }()
     
     private let nickNameTextField: SignTextField = {
-        let config = SignTextField.Configuration(errorMessage: "닉네임을 입력해주세요.",
-                                                 placeHolder: "닉네임")
+        let config = SignTextField.Configuration(placeHolder: "닉네임")
         let textField = SignTextField(config)
         
         return textField
@@ -141,7 +138,7 @@ final class SignUpViewController: UIViewController {
         textBind()
         editEndBind()
         responderChangeBind()
-        validBind()
+        errorBind()
         buttonBind()
     }
 
@@ -200,20 +197,20 @@ final class SignUpViewController: UIViewController {
             }).disposed(by: disposeBag)
     }
     
-    private func validBind() {
-        viewModel.invalid
-            .drive(with: self, onNext: { owner, type in
-                switch type {
-                case .email:
-                    owner.emailTextField.invalid.accept(())
-                case .password:
-                    owner.passwordTextField.invalid.accept(())
-                case .confirmPassword:
-                    owner.confirmPasswordTextField.invalid.accept(())
-                case .nickName:
-                    owner.nickNameTextField.invalid.accept(())
-                case .unknown:
-                    return
+    private func errorBind() {
+        viewModel.error
+            .drive(with: self, onNext: { owner, error in
+                switch error {
+                case .email(reason: _):
+                    owner.emailTextField.error.accept(error)
+                case .password(reason: _):
+                    owner.emailTextField.error.accept(error)
+                case .confirmPassword(reason: _):
+                    owner.emailTextField.error.accept(error)
+                case .nickName(reason: _):
+                    owner.emailTextField.error.accept(error)
+                case .other(reason: _):
+                    owner.errorAlert(error)
                 }
             }).disposed(by: disposeBag)
     }
@@ -231,6 +228,17 @@ final class SignUpViewController: UIViewController {
                 owner.viewModel.create.accept(())
                 owner.navigationController?.popViewController(animated: false)
             }).disposed(by: disposeBag)
+    }
+    
+    private func errorAlert(_ error: SignUpError) {
+        let message = error.errorMessage
+        
+        let alertController = UIAlertController(title: "Error",
+                                                message: message,
+                                                preferredStyle: .alert)
+        alertController.addAction(.init(title: "확인", style: .default))
+        
+        present(alertController, animated: true)
     }
 }
 
