@@ -10,6 +10,8 @@ import Foundation
 protocol ValidCheckerProtocol {
     func email(_ email: String) -> Result<ValidSuccess, SignUpError>
     func password(_ password: String) -> Result<ValidSuccess, SignUpError>
+    func confirmPassword(_ confirmPassword: String) -> Result<ValidSuccess, SignUpError>
+    func nickName(_ nickName: String) -> Result<ValidSuccess, SignUpError>
 }
 
 struct ValidChecker: ValidCheckerProtocol {
