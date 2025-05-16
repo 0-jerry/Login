@@ -17,7 +17,7 @@ final class RegexPattern {
     
     private var pattern = ""
     private var containsTypes = Set<RegexType>()
-    
+        
     @discardableResult
     func contains(types: RegexType...) -> Self {
         types.forEach { containsTypes.insert($0) }
@@ -47,9 +47,28 @@ final class RegexPattern {
         return self
     }
     
-    func build() -> String? {
-        guard !(pattern.isEmpty && containsTypes.isEmpty) else { return nil }
+    @discardableResult
+    func prefix(types: RegexType..., min: Int = 1) -> Self {
+        var validPattern = validForm(Set(types))
+        pattern += validPattern + "{\(min),}"
         
+        return self
+    }
+    
+    @discardableResult
+    func length(min: Int? = 1, max: Int? = nil) -> Self {
+        if let min, let max {
+            pattern += ".{\(min), \(max)}"
+        } else if let min {
+            pattern += ".{\(min),}"
+        } else if let max {
+            pattern += ".{,\(max)}"
+        }
+        
+        return self
+    }
+    
+    func build() -> String {
         let containsPattern = containsTypes
             .sorted()
             .map { containsForm($0) }
