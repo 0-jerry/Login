@@ -8,56 +8,53 @@
 import Foundation
 
 protocol ValidCheckerProtocol {
-    func email(_ email: String) -> Bool
-    func password(_ password: String) -> Bool
+    func email(_ email: String) -> Result<ValidSuccess, SignUpError>
+    func password(_ password: String) -> Result<ValidSuccess, SignUpError>
 }
 
 struct ValidChecker: ValidCheckerProtocol {
-    static let emailErrorMessage = "영문 소문자로 시작, 8~20자, 올바른 이메일 형식이 필요합니다."
-    static let passwortErrorMessage = "8자이상, 대/소문자, 숫자, 특수문자 각 1개 이상 필요 합니다."
-    func email(_ email: String) -> Bool {
-        guard let emailRegex = RegexPattern()
-            .characterSet(types: .lowerCase, max: 1)
-            .characterSet(types: .lowerCase, .number, min: 7, max: 19)
-            .appendCharacter("@")
-            .characterSet(types: .lowerCase, .hyphen, .number)
-            .addTLD()
-            .build() else {
-            return false
-        }
-        
-        guard let _ = email.range(of: emailRegex,
-                                  options: .regularExpression) else {
-            return false
-        }
-        //FIXME: - 이메일 중복과 같은 케이스들을 고려해 에러메세지 수정방식을 구현해야함
-        guard !UserInfoCoreDataManager()
-            .read()
-            .contains(where: { $0.email == email}) else {
-            return false
-        }
-        
-        return true
+    
+    init(container: UserInfoCoreDataManager) {
+        self.emailEvaluator = EmailEvaluator(container: container)
+        self.passwordEvaluator = PasswordEvaluator()
+        self.nickNameEvaluator = NickNameEvaluator(container: container)
     }
     
-    func password(_ password: String) -> Bool {
-        guard let passwordRegex = RegexPattern()
-            .contains(types: .lowerCase,
-                             .upperCase,
-                             .number,
-                             .specialCharacter)
-            .characterSet(types: .lowerCase,
-                                 .upperCase,
-                                 .number,
-                                 .specialCharacter,
-                          min: 8)
-            .build() else { return false }
-        
-        guard let _ = password.range(of: passwordRegex, options: .regularExpression) else {
-            return false
+    private let emailEvaluator: any EmailEvaluatorProtocol
+    private let passwordEvaluator: any PasswordEvaluatorProtocol
+    private let nickNameEvaluator: any NickNameEvaluatorProtocol
+    
+    private var password: String? = nil
+    
+    func email(_ email: String) -> Result<ValidSuccess, SignUpError> {
+        if let reason = emailEvaluator.reason(email) {
+            return .failure(SignUpError.email(reason: reason))
+        } else {
+            return .success(.email)
         }
-        
-        return true
+    }
+    
+   func password(_ password: String) -> Result<ValidSuccess, SignUpError> {
+       if let reason = passwordEvaluator.reason(password) {
+           return .failure(.password(reason: reason))
+       } else {
+           return .success(.password)
+       }
+    }
+    
+    func confirmPassword(_ confirmPassword: String) -> Result<ValidSuccess, SignUpError> {
+        guard let password,
+              password == confirmPassword else {
+            return .failure(.confirmPassword(reason: .notEqual))
+        }
+        return .success(.passwordConfirm)
+    }
+    
+    func nickName(_ nickName: String) -> Result<ValidSuccess, SignUpError> {
+        if let reason = nickNameEvaluator.reason(nickName) {
+            return .failure(.nickName(reason: reason))
+        } else {
+            return .success(.nickName)
+        }
     }
 }
-
