@@ -230,7 +230,7 @@ final class SignUpViewController: UIViewController {
             }).disposed(by: disposeBag)
     }
     
-    private func errorAlert(_ error: SignUpError) {
+    private func errorAlert(_ error: ValidError) {
         let message = error.errorMessage
         
         let alertController = UIAlertController(title: "Error",

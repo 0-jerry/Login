@@ -6,38 +6,24 @@
 //
 
 protocol NickNameEvaluatorProtocol: Evaluator {
-    func reason(_ nickName: String) -> SignUpError.NickName?
+    func reason(_ nickName: String) -> ValidError.NickName?
 }
 
 struct NickNameEvaluator: NickNameEvaluatorProtocol {
     
-    private let container: UserInfoCoreDataManager
-       
-    init(container: UserInfoCoreDataManager) {
-        self.container = container
-    }
-    
-    func reason(_ nickName: String) -> SignUpError.NickName? {
-        guard !isExist(nickName) else {
-            return .overlap
-        }
-        
+    func reason(_ nickName: String) -> ValidError.NickName? {
         guard lengthValid(nickName) else {
             return .length
         }
         
         return nil
     }
-   
+    
     private func lengthValid(_ nickName: String) -> Bool {
         let regex = RegexPattern()
             .length(min: 3, max: 20)
             .build()
         
         return evaluate(regex, with: nickName)
-    }
-    
-    private func isExist(_ nickName: String) -> Bool {
-        return container.read().contains(where: { $0.nickName == nickName})
     }
 }

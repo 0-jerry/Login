@@ -5,7 +5,11 @@
 //  Created by 0-jerry on 5/14/25.
 //
 
-enum SignUpError: Error {
+protocol MessageConvertibleError: Error {
+    var errorMessage: String { get }
+}
+
+enum ValidError: MessageConvertibleError {
     case email(reason: Email)
     case password(reason: PassWord)
     case confirmPassword(reason: ConfirmPassWord)
@@ -13,7 +17,6 @@ enum SignUpError: Error {
     case other(reason: AnyReason)
     
     enum Email: CustomStringConvertible {
-        case exist
         case startCharacter
         case form
         case length
@@ -21,8 +24,6 @@ enum SignUpError: Error {
         
         var description: String {
             switch self {
-            case .exist:
-                return "이미 존재하는 이메일입니다."
             case .startCharacter:
                 return "아이디는 소문자로 시작해야 합니다."
             case .form:
@@ -61,13 +62,10 @@ enum SignUpError: Error {
     }
     
     enum NickName: CustomStringConvertible {
-        case overlap
         case length
         
         var description: String {
             switch self {
-            case .overlap:
-                return "이미 존재하는 닉네임입니다."
             case .length:
                 return "닉네임의 길이는 3~20자여야 합니다"
             }

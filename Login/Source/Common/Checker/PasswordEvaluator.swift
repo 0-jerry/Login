@@ -6,12 +6,12 @@
 //
 
 protocol PasswordEvaluatorProtocol: Evaluator {
-    func reason(_ value: String) -> SignUpError.PassWord?
+    func reason(_ value: String) -> ValidError.PassWord?
 }
 
 struct PasswordEvaluator: PasswordEvaluatorProtocol {
         
-    func reason(_ value: String) -> SignUpError.PassWord? {
+    func reason(_ value: String) -> ValidError.PassWord? {
         guard contains(value) else { return .contains }
         guard lengthValid(value) else { return .length }
         

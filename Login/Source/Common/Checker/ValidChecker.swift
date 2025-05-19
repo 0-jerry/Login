@@ -8,18 +8,18 @@
 import Foundation
 
 protocol ValidCheckerProtocol {
-    func email(_ email: String) -> Result<ValidSuccess, SignUpError>
-    func password(_ password: String) -> Result<ValidSuccess, SignUpError>
-    func confirmPassword(_ confirmPassword: String) -> Result<ValidSuccess, SignUpError>
-    func nickName(_ nickName: String) -> Result<ValidSuccess, SignUpError>
+    func email(_ email: String) -> Result<ValidSuccess, ValidError>
+    func password(_ password: String) -> Result<ValidSuccess, ValidError>
+    func confirmPassword(_ confirmPassword: String) -> Result<ValidSuccess, ValidError>
+    func nickName(_ nickName: String) -> Result<ValidSuccess, ValidError>
 }
 
 struct ValidChecker: ValidCheckerProtocol {
     
-    init(container: UserInfoCoreDataManager) {
-        self.emailEvaluator = EmailEvaluator(container: container)
+    init() {
+        self.emailEvaluator = EmailEvaluator()
         self.passwordEvaluator = PasswordEvaluator()
-        self.nickNameEvaluator = NickNameEvaluator(container: container)
+        self.nickNameEvaluator = NickNameEvaluator()
     }
     
     private let emailEvaluator: any EmailEvaluatorProtocol
@@ -28,15 +28,15 @@ struct ValidChecker: ValidCheckerProtocol {
     
     private var password: String? = nil
     
-    func email(_ email: String) -> Result<ValidSuccess, SignUpError> {
+    func email(_ email: String) -> Result<ValidSuccess, ValidError> {
         if let reason = emailEvaluator.reason(email) {
-            return .failure(SignUpError.email(reason: reason))
+            return .failure(ValidError.email(reason: reason))
         } else {
             return .success(.email)
         }
     }
     
-   func password(_ password: String) -> Result<ValidSuccess, SignUpError> {
+   func password(_ password: String) -> Result<ValidSuccess, ValidError> {
        if let reason = passwordEvaluator.reason(password) {
            return .failure(.password(reason: reason))
        } else {
@@ -44,7 +44,7 @@ struct ValidChecker: ValidCheckerProtocol {
        }
     }
     
-    func confirmPassword(_ confirmPassword: String) -> Result<ValidSuccess, SignUpError> {
+    func confirmPassword(_ confirmPassword: String) -> Result<ValidSuccess, ValidError> {
         guard let password,
               password == confirmPassword else {
             return .failure(.confirmPassword(reason: .notEqual))
@@ -52,7 +52,7 @@ struct ValidChecker: ValidCheckerProtocol {
         return .success(.passwordConfirm)
     }
     
-    func nickName(_ nickName: String) -> Result<ValidSuccess, SignUpError> {
+    func nickName(_ nickName: String) -> Result<ValidSuccess, ValidError> {
         if let reason = nickNameEvaluator.reason(nickName) {
             return .failure(.nickName(reason: reason))
         } else {

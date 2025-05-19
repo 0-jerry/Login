@@ -6,20 +6,12 @@
 //
 
 protocol EmailEvaluatorProtocol: Evaluator {
-    func reason(_ email: String) -> SignUpError.Email?
+    func reason(_ email: String) -> ValidError.Email?
 }
 
 struct EmailEvaluator: EmailEvaluatorProtocol {
     
-    init(container: UserInfoCoreDataManager) {
-        self.container = container
-    }
-    private let container: UserInfoCoreDataManager
-    
-    func reason(_ email: String) -> SignUpError.Email? {
-        guard !isExist(email) else {
-            return .exist
-        }
+    func reason(_ email: String) -> ValidError.Email? {
         let components = email.components(separatedBy: "@")
         
         guard components.count == 2 else {
@@ -36,11 +28,7 @@ struct EmailEvaluator: EmailEvaluatorProtocol {
         } else { return nil }
     }
     
-    private func isExist(_ email: String) -> Bool {
-        container.read().contains(where: { $0.email == email })
-    }
-    
-    private func idCheck(_ id: String) -> SignUpError.Email? {
+    private func idCheck(_ id: String) -> ValidError.Email? {
         guard startCharacterValid(id) else {
             return .startCharacter
         }
@@ -56,7 +44,7 @@ struct EmailEvaluator: EmailEvaluatorProtocol {
         return nil
     }
     
-    private func domainCheck(_ domain: String) -> SignUpError.Email? {
+    private func domainCheck(_ domain: String) -> ValidError.Email? {
         guard domainFormatValid(domain) else {
             return .form
         }

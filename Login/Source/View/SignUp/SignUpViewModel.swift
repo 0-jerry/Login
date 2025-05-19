@@ -32,8 +32,8 @@ final class SignUpViewModel {
     let confirmPasswordRelay = BehaviorRelay<String?>(value: "")
     let nickNameRelay = BehaviorRelay<String?>(value: "")
     
-    private let errorRelay = PublishRelay<SignUpError>()
-    var error: Driver<SignUpError> {
+    private let errorRelay = PublishRelay<ValidError>()
+    var error: Driver<ValidError> {
         errorRelay.asDriver(onErrorDriveWith: .empty())
     }
     

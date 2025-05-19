@@ -43,7 +43,7 @@ final class SignTextField: UIView {
     var endEditing: Driver<Void> {
         textField.rx.controlEvent(.editingDidEnd).asDriver() }
     var text: ControlProperty<String?> { textField.rx.text }
-    var error = PublishRelay<SignUpError>()
+    var error = PublishRelay<ValidError>()
     weak var nextTextField: SignTextField?
     
     private let textFieldBorder: UIView = {
