@@ -1,5 +1,5 @@
 //
-//  SignInManager.swift
+//  UserInfoUserDefault.swift
 //  Login
 //
 //  Created by 0-jerry on 5/15/25.
@@ -13,7 +13,7 @@ protocol UserInfoUserDefaultProtocol {
     func delete()
 }
 
-class UserInfoUserDefault: UserInfoUserDefaultProtocol {
+final class UserInfoUserDefault: UserInfoUserDefaultProtocol {
     
     static let shared = UserInfoUserDefault()
     
